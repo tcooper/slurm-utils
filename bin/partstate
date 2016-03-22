@@ -1,0 +1,5 @@
+#!/bin/sh
+
+/usr/bin/sinfo -lNe --format="%.16P %.6D %.8t %.5c %.7z %.8m %.12s %.8G %.10h %.12l" --sort="P,t"
+
+exit 0
