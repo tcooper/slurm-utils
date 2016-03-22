@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Wrapper for Slurm sprio command that sorts output based on Priority
+
+/bin/echo "          JOBID     USER   PRIORITY        AGE  FAIRSHARE    JOBSIZE  PARTITION        QOS   NICE"
+/usr/bin/sprio -h -l | sort -k3,3nr
+
+exit 0
