@@ -50,8 +50,7 @@ function dhmsToSecs() {
     declare a _dhms=($@)
 
     if [[ ${#_dhms[@]} -eq 4 ]]; then
-        secs=$(( (10#${_dhms[0]} * 86400) + (10#${_dhms[1]} * 3600) + (10#${_dhms[2]} * 60
-) + 10#${_dhms[3]} ))
+        secs=$(( (10#${_dhms[0]} * 86400) + (10#${_dhms[1]} * 3600) + (10#${_dhms[2]} * 60) + 10#${_dhms[3]} ))
     elif [[ ${#_dhms[@]} -eq 3 ]]; then
         secs=$(( (10#${_dhms[0]} * 3600) + (10#${_dhms[1]} * 60) + 10#${_dhms[2]} ))
     elif [[ ${#_dhms[@]} -eq 2 ]]; then
