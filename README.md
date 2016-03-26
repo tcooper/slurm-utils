@@ -141,3 +141,55 @@ ORDER  JOBID    USER      PRIORITY  AGE   FAIRSHARE  JOBSIZE  PARTITION  QOS   N
 1013   1895551  hushbby   1002      0     0          2        1000       0     0
 1014   1895553  hushbby   1002      0     0          2        1000       0     0
 ```
+
+# jobstate
+
+The `jobstate` scripts are used to upload job state metrics to graphite. The 
+Slurm accounting database is queried with `sacct` at fixed periods and the 
+output is parsed in multiple ways aggregating job states by partition, account,
+and user.
+
+Below is sample output from Comet...
+
+NOTE: While partition names are valid account and user names have been manually
+trimmed and anonymized.
+
+```
+[admin@comet jobstate]$ cat log/jobstate.log
+clusters.comet.jobs.CANCELLED 1 1458968340
+clusters.comet.jobs.COMPLETED 1210 1458968340
+clusters.comet.jobs.FAILED 5 1458968340
+clusters.comet.jobs.NODE_FAIL 1 1458968340
+clusters.comet.jobs.PENDING 1091 1458968340
+clusters.comet.jobs.RUNNING 1975 1458968340
+clusters.comet.jobs.TIMEOUT 11 1458968340
+clusters.comet.jobs.TOTAL 4294 1458968340
+clusters.comet.jobs.TOTAL_COMP 1228 1458968340
+clusters.comet.jobs.partition.compute.CANCELLED 1 1458968340
+clusters.comet.jobs.partition.compute.COMPLETED 343 1458968340
+clusters.comet.jobs.partition.compute.FAILED 3 1458968340
+clusters.comet.jobs.partition.compute.NODE_FAIL 1 1458968340
+clusters.comet.jobs.partition.compute.PENDING 895 1458968340
+clusters.comet.jobs.partition.compute.RUNNING 492 1458968340
+clusters.comet.jobs.partition.compute.TIMEOUT 3 1458968340
+clusters.comet.jobs.partition.gpu.COMPLETED 1 1458968340
+clusters.comet.jobs.partition.gpu.PENDING 84 1458968340
+clusters.comet.jobs.partition.gpu.RUNNING 14 1458968340
+clusters.comet.jobs.partition.gpu_shared.PENDING 92 1458968340
+clusters.comet.jobs.partition.gpu_shared.RUNNING 44 1458968340
+clusters.comet.jobs.partition.gpu_shared.TIMEOUT 4 1458968340
+clusters.comet.jobs.partition.large_shared.COMPLETED 1 1458968340
+clusters.comet.jobs.partition.large_shared.RUNNING 3 1458968340
+clusters.comet.jobs.partition.maint.PENDING 13 1458968340
+clusters.comet.jobs.partition.shared.COMPLETED 865 1458968340
+clusters.comet.jobs.partition.shared.FAILED 2 1458968340
+clusters.comet.jobs.partition.shared.PENDING 7 1458968340
+clusters.comet.jobs.partition.shared.RUNNING 1422 1458968340
+clusters.comet.jobs.partition.shared.TIMEOUT 4 1458968340
+...<snip>...
+clusters.comet.jobs.account.systems.PENDING 13 1458968340
+...<snip>...
+clusters.comet.jobs.user.admin.PENDING 13 1458968340
+...<snip>...
+```
+
