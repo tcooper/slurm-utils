@@ -1,0 +1,96 @@
+#!/bin/sh
+
+# We send this data to graphite @hourly.
+# The script can be run with manual start end times if needed but
+# RUNNING job information will NOT be what you think it is.
+
+if [[ $# -lt 2 ]] ; then
+    if [[ $# -lt 1 ]] ; then
+        # No input params, use current time as end
+        END_EPOCH=$(date +%s)
+    else
+        # Single input param, use as end
+        ( /bin/echo "$1" | /bin/egrep -q "[:alpha:]") && \
+            END_EPOCH=$(date -d "$1" +%s) || \
+            END_EPOCH=$1
+    fi
+    # Round END_EPOCH to whole minute
+    END_EPOCH=$(($END_EPOCH / 60 * 60))
+    END=$(/bin/date -d@$END_EPOCH +%Y-%m-%dT%H:%M:%S)
+    # START is one hour before END
+    START_EPOCH=$(($END_EPOCH - 3600))
+    START=$(/bin/date -d@$START_EPOCH +%Y-%m-%dT%H:%M:%S)
+else
+    # Both START and END are provided, convert to epoch use as is...
+    ( /bin/echo "$1" | /bin/egrep -q "[:alpha:]") && \
+        START_EPOCH=$(date -d "$1" +%s) || \
+        START_EPOCH=$1
+    START=$(/bin/date -d@$START_EPOCH +%Y-%m-%dT%H:%M:%S)
+    ( /bin/echo "$1" | /bin/egrep -q "[:alpha:]") && \
+        END_EPOCH=$(date -d "$2" +%s) || \
+        END_EPOCH=$2
+    END=$(/bin/date -d@$END_EPOCH +%Y-%m-%dT%H:%M:%S)
+fi
+
+TZ=$(date +%Z)
+EPOCH_STR=$(echo "${END}" | /usr/bin/tr 'T' ' ')
+EPOCH_STR="${EPOCH_STR} ${TZ}"
+
+JS=$(mktemp)
+
+export hn=$(hostname -s)
+export epoch=$(date -d "${EPOCH_STR}" +%s)
+export prefix='your.metric.prefix'
+
+function dhmsToSecs() {
+
+    declare i secs=0
+
+    IFS=$'-:'
+    declare a _dhms=($@)
+
+    if [[ ${#_dhms[@]} -eq 4 ]]; then
+        secs=$(( (10#${_dhms[0]} * 86400) + (10#${_dhms[1]} * 3600) + (10#${_dhms[2]} * 60
+) + 10#${_dhms[3]} ))
+    elif [[ ${#_dhms[@]} -eq 3 ]]; then
+        secs=$(( (10#${_dhms[0]} * 3600) + (10#${_dhms[1]} * 60) + 10#${_dhms[2]} ))
+    elif [[ ${#_dhms[@]} -eq 2 ]]; then
+        secs=$(( (10#${_dhms[0]} * 60) + 10#${_dhms[1]} ))
+    else
+        secs=$((10#${_dhms[0]}))
+    fi
+    unset IFS
+
+    echo $secs
+}
+
+/usr/bin/sacct --allusers \
+    -n -P -X \
+    --format "Partition,Account,User,State,NNodes,NCPUS,TimeLimit,NodeList" \
+    -S ${START} \
+    -E ${END} | \
+    /bin/sed 's/ by [0-9]*//g' > ${JS}
+
+# job state overall
+/bin/sed 's/|/ /g' ${JS}| \
+    /bin/awk '{sum[$4]++; if ($4 != "RUNNING" && $4 != "PENDING") sum["TOTAL_COMP"]++; sum["TOTAL"]++} END {for (i in sum) printf("%s.%s.jobs.%s %d %d\n",ENVIRON["prefix"],ENVIRON["hn"],i,sum[i],ENVIRON["epoch"])}' | \
+    /bin/sort
+
+# job state by partition
+/bin/sed 's/|/ /g;s/-/_/g' ${JS}| \
+    /bin/awk '{sum[$1"."$4]++} END {for (i in sum) printf("%s.%s.jobs.partition.%s %d %d\n",ENVIRON["prefix"],ENVIRON["hn"],i,sum[i],ENVIRON["epoch"])}' | \
+    /bin/sort
+
+# job state by account
+/bin/sed 's/|/ /g' ${JS}| \
+    /bin/awk '{sum[$2"."$4]++} END {for (i in sum) printf("%s.%s.jobs.account.%s %d %d\n",ENVIRON["prefix"],ENVIRON["hn"],i,sum[i],ENVIRON["epoch"])}' | \
+    /bin/sort
+
+# job state by user
+/bin/sed 's/|/ /g' ${JS}| \
+    /bin/awk '{sum[$3"."$4]++} END {for (i in sum) printf("%s.%s.jobs.user.%s %d %d\n",ENVIRON["prefix"],ENVIRON["hn"],i,sum[i],ENVIRON["epoch"])}' | \
+    /bin/sort
+
+/bin/rm ${JS}
+
+exit 0

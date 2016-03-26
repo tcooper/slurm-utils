@@ -1,0 +1,24 @@
+#/bin/sh
+#
+# jobstate-graphite is used to display jobstate by partition/account/user in Graphite
+# 
+# The easiest way to do this is to run the script via cron with an entry like this...
+#
+# @hourly         $HOME/jobstate/jobstate-graphite-cron
+
+realpath () {
+  [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+RP=$(realpath $0)
+DN=$(dirname $RP)
+TSF=$(mktemp)
+
+${DN}/jobstate-graphite > $TSF 2>/dev/null
+${DN}/send-to-graphite.py $TSF &> /dev/null
+
+/bin/mkdir -p ${DN}/log
+/bin/cat $TSF >> ${DN}/log/jobstate.log
+/bin/rm $TSF &> /dev/null
+
+exit 0
