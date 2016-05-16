@@ -1,0 +1,22 @@
+#/bin/sh
+
+SCRIPT=$( readlink -m $( type -p $0 ))      # Full path to script
+BASE_DIR=`dirname ${SCRIPT}`                # Directory script is run in
+NAME=`basename ${SCRIPT}`                   # Actual name of script even if linked
+SDSC_SBIN=/opt/sdsc/sbin
+
+TSF=$(mktemp)
+
+/bin/sleep 10
+${BASE_DIR}/${NAME}.py | /bin/egrep -v "rpc_user" > ${TSF} 2>/dev/null
+[ -x ${SDSC_SBIN}/send-to-graphite.py ] && ${SDSC_SBIN}/send-to-graphite.py ${TSF} &> /dev/null
+/bin/cat ${TSF} >> ${BASE_DIR}/${NAME}.log
+
+/bin/sleep 30
+${BASE_DIR}/${NAME}.py | /bin/egrep -v "rpc_user" > ${TSF} 2>/dev/null
+[ -x ${SDSC_SBIN}/send-to-graphite.py ] && ${SDSC_SBIN}/send-to-graphite.py ${TSF} &> /dev/null
+/bin/cat ${TSF} >> ${BASE_DIR}/${NAME}.log
+
+/bin/rm ${TSF} &> /dev/null
+
+exit 0

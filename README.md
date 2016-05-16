@@ -193,3 +193,58 @@ clusters.comet.jobs.user.admin.PENDING 13 1458968340
 ...<snip>...
 ```
 
+## slurmctld_stats
+
+slurmctld_stats uses PySlurm, the Python Interface to Slurm, to pull slurmctld
+statistics and format them appropriately for transmission to Graphite.
+
+Below is sample output for Comet...
+
+```
+<prefix>.slurmctld.stats.bf_cycle_sum 108882089 1463361581
+<prefix>.slurmctld.stats.bf_queue_len_sum 3018 1463361581
+<prefix>.slurmctld.stats.bf_last_backfilled_jobs 26 1463361581
+<prefix>.slurmctld.stats.bf_when_last_cycle 1463361522 1463361581
+<prefix>.slurmctld.stats.bf_last_depth 25 1463361581
+<prefix>.slurmctld.stats.schedule_cycle_sum 10001846 1463361581
+<prefix>.slurmctld.stats.bf_queue_len 25 1463361581
+<prefix>.slurmctld.stats.schedule_cycle_last 24034 1463361581
+<prefix>.slurmctld.stats.bf_active 0 1463361581
+<prefix>.slurmctld.stats.schedule_queue_len 26 1463361581
+<prefix>.slurmctld.stats.schedule_cycle_depth 32529 1463361581
+<prefix>.slurmctld.stats.req_time_start 1463356800 1463361581
+<prefix>.slurmctld.stats.jobs_submitted 151 1463361581
+<prefix>.slurmctld.stats.bf_cycle_counter 70 1463361581
+<prefix>.slurmctld.stats.bf_cycle_last 31905 1463361581
+<prefix>.slurmctld.stats.bf_cycle_max 11272543 1463361581
+<prefix>.slurmctld.stats.schedule_cycle_max 62135 1463361581
+<prefix>.slurmctld.stats.bf_backfilled_jobs 2514 1463361581
+<prefix>.slurmctld.stats.req_time 1463361581 1463361581
+<prefix>.slurmctld.stats.parts_packed 1 1463361581
+<prefix>.slurmctld.stats.bf_last_depth_try 24 1463361581
+<prefix>.slurmctld.stats.jobs_failed 0 1463361581
+<prefix>.slurmctld.stats.schedule_cycle_counter 712 1463361581
+<prefix>.slurmctld.stats.jobs_canceled 10 1463361581
+<prefix>.slurmctld.stats.jobs_completed 563 1463361581
+<prefix>.slurmctld.stats.bf_depth_try_sum 2458 1463361581
+<prefix>.slurmctld.stats.bf_depth_sum 3018 1463361581
+<prefix>.slurmctld.stats.server_thread_count 3 1463361581
+<prefix>.slurmctld.stats.agent_queue_size 0 1463361581
+<prefix>.slurmctld.stats.jobs_started 243 1463361581
+```
+
+The `<prefix>` value should be replaced in slurmctld_stats.py script to point
+at your desired metric path.
+
+In addition, this script requires a copy of send-to-graphite.py which is
+a simple Python based socket transmitter for Graphite.
+
+Finally, the script is/can be triggered by cron with an entry like the
+following...
+
+```
+$ crontab -l | grep slurmctld
+# slurmctld_stats is used to display slurmctld statistics in graphite
+* * * * *       $HOME/slurmctld_stats/slurmctld_stats
+```
+
