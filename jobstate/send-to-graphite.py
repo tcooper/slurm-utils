@@ -12,7 +12,7 @@ sock = socket.socket()
 try:
         sock.connect( (CARBON_SERVER,CARBON_PORT) )
 except:
-        print "Connection to %(server)s on port %(port)d failed." % { 'server':CARBON_SERVER, 'port':CARBON_PORT }
+        print("Connection to %(server)s on port %(port)d failed." % { 'server':CARBON_SERVER, 'port':CARBON_PORT })
         sys.exit(1)
 
 for filename in sys.argv[1:]:
@@ -22,4 +22,4 @@ for filename in sys.argv[1:]:
                 sys.stderr.write('Cannot access ' + filename + '\n')
         else:
                 for line in fp:
-                        sock.sendall(line)
+                        sock.sendall(line.encode())
